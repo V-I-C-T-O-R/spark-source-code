@@ -168,11 +168,13 @@ private def submitStage(stage: Stage) {
 ```
 submitStage内部包含两个主要操作：getMissingParentStages和submitMissingTasks，用于按照顺序提交stage，主要的流程如下：  
 ![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/2/pic/1.jpg)
+
+getMissingParentStages根据stage的rdd依赖来进行处理，若是窄依赖则继续递归处理该Rdd；若是宽依赖则获取该shuffleMapStage,判断该stage的状态是否是ready，不是则添加到待提交列表。
 ```
 private def getMissingParentStages(stage: Stage): List[Stage] = {
     val missing = new HashSet[Stage]
     val visited = new HashSet[RDD[_]]
-    
+   
     val waitingForVisit = new ArrayStack[RDD[_]]
     def visit(rdd: RDD[_]) {
       if (!visited(rdd)) {
@@ -199,22 +201,16 @@ private def getMissingParentStages(stage: Stage): List[Stage] = {
     }
     missing.toList
 }
-
+```
+判断上一步返回的missingList是否为空，空则执行submitMissingTasks操作。不为空则遍历missingList列表递归调用submitStage方法，且将当前stage加入waitingStages集合中。submitMissingTasks中核心的执行操作如下：  
+```
 private def submitMissingTasks(stage: Stage, jobId: Int) {
-    logDebug("submitMissingTasks(" + stage + ")")
-    val partitionsToCompute: Seq[Int] = stage.findMissingPartitions()
-    val properties = jobIdToActiveJob(jobId).properties
-
+    ......省略.......
+    //将stage添加到runningStages集合中
     runningStages += stage
-    stage match {
-      case s: ShuffleMapStage =>
-        outputCommitCoordinator.stageStart(stage = s.id, maxPartitionId = s.numPartitions - 1)
-      case s: ResultStage =>
-        outputCommitCoordinator.stageStart(
-          stage = s.id, maxPartitionId = s.rdd.partitions.length - 1)
-    }
-    val taskIdToLocations: Map[Int, Seq[TaskLocation]] = try {
-      stage match {
+    //TaskLocation对象中只有一个属性 host: String，taskIdToLocations记录计算partition所在的本地host信息
+   val taskIdToLocations: Map[Int, Seq[TaskLocation]] = 
+   stage match {
         case s: ShuffleMapStage =>
           partitionsToCompute.map { id => (id, getPreferredLocs(stage.rdd, id))}.toMap
         case s: ResultStage =>
@@ -223,26 +219,11 @@ private def submitMissingTasks(stage: Stage, jobId: Int) {
             (id, getPreferredLocs(stage.rdd, p))
           }.toMap
       }
-    } catch {
-      case NonFatal(e) =>
-        stage.makeNewStageAttempt(partitionsToCompute.size)
-        listenerBus.post(SparkListenerStageSubmitted(stage.latestInfo, properties))
-        abortStage(stage, s"Task creation failed: $e\n${Utils.exceptionString(e)}", Some(e))
-        runningStages -= stage
-        return
-    }
-
-    stage.makeNewStageAttempt(partitionsToCompute.size, taskIdToLocations.values.toSeq)
-
-    if (partitionsToCompute.nonEmpty) {
-      stage.latestInfo.submissionTime = Some(clock.getTimeMillis())
-    }
-    listenerBus.post(SparkListenerStageSubmitted(stage.latestInfo, properties))
-    var taskBinary: Broadcast[Array[Byte]] = null
-    var partitions: Array[Partition] = null
-    try {
-      var taskBinaryBytes: Array[Byte] = null
-      RDDCheckpointData.synchronized {
+   //发送SparkListenerStageSubmitted时间到事件总线
+   listenerBus.post(SparkListenerStageSubmitted(stage.latestInfo, properties))
+   
+   //task任务的具体生成细节，根据ShuffleMapTask和ResultTask两种task类型来生成对应的task list。
+   RDDCheckpointData.synchronized {
         taskBinaryBytes = stage match {
           case stage: ShuffleMapStage =>
             JavaUtils.bufferToArray(
@@ -253,17 +234,63 @@ private def submitMissingTasks(stage: Stage, jobId: Int) {
 
         partitions = stage.rdd.partitions
       }
-
+      
       taskBinary = sc.broadcast(taskBinaryBytes)
-    } catch {
-      case e: NotSerializableException =>
-        abortStage(stage, "Task not serializable: " + e.toString, Some(e))
-        runningStages -= stage
-        return
-      case e: Throwable =>
-        abortStage(stage, s"Task serialization failed: $e\n${Utils.exceptionString(e)}", Some(e))
-        runningStages -= stage
-        return
-    }
-```
+   
+   val tasks: Seq[Task[_]] = try {
+      val serializedTaskMetrics = closureSerializer.serialize(stage.latestInfo.taskMetrics).array()
+      stage match {
+        case stage: ShuffleMapStage =>
+          stage.pendingPartitions.clear()
+          partitionsToCompute.map { id =>
+            val locs = taskIdToLocations(id)
+            val part = partitions(id)
+            stage.pendingPartitions += id
+            new ShuffleMapTask(stage.id, stage.latestInfo.attemptNumber,
+              taskBinary, part, locs, properties, serializedTaskMetrics, Option(jobId),
+              Option(sc.applicationId), sc.applicationAttemptId, stage.rdd.isBarrier())
+          }
 
+        case stage: ResultStage =>
+          partitionsToCompute.map { id =>
+            val p: Int = stage.partitions(id)
+            val part = partitions(p)
+            val locs = taskIdToLocations(id)
+            new ResultTask(stage.id, stage.latestInfo.attemptNumber,
+              taskBinary, part, locs, id, properties, serializedTaskMetrics,
+              Option(jobId), Option(sc.applicationId), sc.applicationAttemptId,
+              stage.rdd.isBarrier())
+          }
+      }
+    
+    //检查当前task数量大于0，提交task任务
+    if (tasks.size > 0) {
+      logInfo(s"Submitting ${tasks.size} missing tasks from $stage (${stage.rdd}) (first 15 " +
+        s"tasks are for partitions ${tasks.take(15).map(_.partitionId)})")
+      taskScheduler.submitTasks(new TaskSet(
+        tasks.toArray, stage.id, stage.latestInfo.attemptNumber, jobId, properties))
+}
+```
+submitTasks方法用于具体的任务提交(实际上是调用了RPC主键去发送task)
+```
+override def submitTasks(taskSet: TaskSet) {
+    val tasks = taskSet.tasks
+    this.synchronized {
+      val manager = createTaskSetManager(taskSet, maxTaskFailures)
+      val stage = taskSet.stageId
+      val stageTaskSets =
+        taskSetsByStageIdAndAttempt.getOrElseUpdate(stage, new HashMap[Int, TaskSetManager])
+        stageTaskSets.foreach { case (_, ts) =>
+        ts.isZombie = true
+      }
+　　stageTaskSets(taskSet.stageAttemptId) = manager
+　　schedulableBuilder.addTaskSetManager(manager, manager.taskSet.properties)
+     ........省略........
+    
+    backend.reviveOffers()
+}
+//RpcEndpointRef实现
+override def reviveOffers() {
+    localEndpoint.send(ReviveOffers)
+  }
+```
