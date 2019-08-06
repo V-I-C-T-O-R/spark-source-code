@@ -166,9 +166,9 @@ private def submitStage(stage: Stage) {
     }
 }
 ```
-submitStage内部包含两个主要操作：getMissingParentStages和submitMissingTasks，用于按照顺序提交stage，主要的流程如下：![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/2/pic/1.jpg)
+submitStage内部包含两个主要操作：getMissingParentStages和submitMissingTasks，用于按照顺序提交stage，主要的流程如下：  
+![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/2/pic/1.jpg)
 ```
-
 private def getMissingParentStages(stage: Stage): List[Stage] = {
     val missing = new HashSet[Stage]
     val visited = new HashSet[RDD[_]]
