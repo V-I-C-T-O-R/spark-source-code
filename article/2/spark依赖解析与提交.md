@@ -271,7 +271,7 @@ private def submitMissingTasks(stage: Stage, jobId: Int) {
         tasks.toArray, stage.id, stage.latestInfo.attemptNumber, jobId, properties))
 }
 ```
-submitTasks方法用于具体的任务提交(实际上是调用了RPC主键去发送task)
+submitTasks方法用于具体的任务提交(实际上是调用了RPC组件去发送task)
 ```
 override def submitTasks(taskSet: TaskSet) {
     val tasks = taskSet.tasks
@@ -292,5 +292,5 @@ override def submitTasks(taskSet: TaskSet) {
 //RpcEndpointRef实现
 override def reviveOffers() {
     localEndpoint.send(ReviveOffers)
-  }
+}
 ```
