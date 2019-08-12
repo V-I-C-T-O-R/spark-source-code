@@ -56,7 +56,7 @@ IOMode ioMode = IOMode.valueOf(conf.ioMode());
     port = ((InetSocketAddress) channelFuture.channel().localAddress()).getPort();
 }
 ```
-<div align=center>  ![2.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/3/pic/2.jpg)</div>
+![2.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/3/pic/2.jpg)
 
 ##### Spark rpc注册endpoint
 在Spark中的注册方法为`NettyRpcEnv.setupEndpoint`：
