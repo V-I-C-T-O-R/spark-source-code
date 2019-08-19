@@ -6,7 +6,6 @@ Spark-source-code
 >
 
 ![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/pic/1.jpg)  
-![1.png](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/2/pic/1.png)  
 
 #### 阅读目录  
 * [从示例出发，阅读Spark执行过程](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/1/从示例出发，阅读Spark执行过程.md)
