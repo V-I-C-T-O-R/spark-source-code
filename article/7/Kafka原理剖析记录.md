@@ -11,11 +11,12 @@ partition首领会维护一个与其基本同步的副本列表，每个partitio
 ##### 方案一  
 Kafka最开始通过Zookeeper的Watcher实现，每个Consumer Group在zookeeper下都维护了一个"/consumers/[group_id]/ids"路径，在此路径下使用临时节点记录属于此Consumer Group的消费者的id，由Consumer启动时创建。还有两个与ids节点同级的节点，分别是：owners,记录了分区与消费者的对应关系；offsets节点，记录了此Consumer Group在某个分区上的消费位置。
 每个Broker、Topic以及分区在zookeeper中也都对应一个路径，如下所示：
-> /brokers/ids/broker_id:记录了host、port以及分配在此Broker上的Topic的分区列表。
-> /brokers/topics/[topic_name]:记录了每个partition的leader、ISR等信息。
-> /brokers/topics/[topic_name]/partitions/[partition_num]/state:记录了当前leader、选举epoch等信息。
+> /brokers/ids/broker_id:记录了host、port以及分配在此Broker上的Topic的分区列表。</br>
+> /brokers/topics/[topic_name]:记录了每个partition的leader、ISR等信息。</br>
+> /brokers/topics/[topic_name]/partitions/[partition_num]/state:记录了当前leader、选举epoch等信息。</br>
 
-路径图如下：
+路径图如下：  
+
 ![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/7/pic/1.jpg)
 每个Consumer都分别在"/consumers/[group_id]/ids"和"/brokers/ids"路径上注册一个Watcher。当"/consumers/[group_id]/ids"路径的子节点发生变化时，便是Consumer group中的消费者出现了变化；当"/brokers/ids"路径的子节点发生变化时，表示Broker出现了增减。这样，通过Watcher，每个消费者就可以监控Consumer Group和Kafka集群的状态了。
 这个严重依赖Zookeeper集群的方案，有两个比较严重的问题：羊群效应(一个被watch的zookeeper节点变化，导致大量的watcher通知需要被发送给客户端，导致通知期间其他操作延迟)和脑裂(每个Consumer都是通过zookeeper中保存的元数据判断consumer group状态、broker状态、rebalance结果的，由于zookeeper只保证最终一致性，不同consumer在同一时刻可能连接到zookeeper集群中不同的服务器，看到的元数据就可能不一样，就会造成不正确的rebalance尝试)。
