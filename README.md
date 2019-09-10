@@ -16,3 +16,4 @@ Spark-source-code
 * [Spark之内存管理](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/6/Spark之内存管理.md)
 * [Netty源码解析系列](https://www.cnblogs.com/crazymakercircle/p/9904544.html)
 * [Kakfa关键笔记](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/7/Kafka原理剖析记录.md)
+* [Kakfa之启动笔记](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/8/Kafka之启动.md)
