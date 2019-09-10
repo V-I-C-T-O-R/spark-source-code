@@ -74,33 +74,84 @@ def startup() {
 5.创建并启动副本管理器replicaManager
 ```
 def startup() {
-　　 #设置ISR策略,发现ISR副本不同步即通知zk
+　　 #设置ISR策略,定时扫描在线副本，发现同步副本延时超过指定时间即更新ISR列表
     scheduler.schedule("isr-expiration", maybeShrinkIsr _, period = config.replicaLagTimeMaxMs / 2, unit = TimeUnit.MILLISECONDS)
+    #设置ISR策略,定时发现ISR副本不同步即通知zk
     scheduler.schedule("isr-change-propagation", maybePropagateIsrChanges _, period = 2500L, unit = TimeUnit.MILLISECONDS)
     val haltBrokerOnFailure = config.interBrokerProtocolVersion < KAFKA_1_0_IV0
     logDirFailureHandler = new LogDirFailureHandler("LogDirFailureHandler", haltBrokerOnFailure)
     logDirFailureHandler.start()
 }
 
-def schedule(name: String, fun: ()=>Unit, delay: Long, period: Long, unit: TimeUnit) {
-    debug("Scheduling task %s with initial delay %d ms and period %d ms."
-        .format(name, TimeUnit.MILLISECONDS.convert(delay, unit), TimeUnit.MILLISECONDS.convert(period, unit)))
-    this synchronized {
-      ensureRunning
-      val runnable = CoreUtils.runnable {
-        try {
-          trace("Beginning execution of scheduled task '%s'.".format(name))
-          fun()
-        } catch {
-          case t: Throwable => error("Uncaught exception in scheduled task '" + name +"'", t)
-        } finally {
-          trace("Completed execution of scheduled task '%s'.".format(name))
-        }
+def maybeShrinkIsr(replicaMaxLagTimeMs: Long) {
+    val leaderHWIncremented = inWriteLock(leaderIsrUpdateLock) {
+      leaderReplicaIfLocal match {
+        case Some(leaderReplica) =>
+          val outOfSyncReplicas = getOutOfSyncReplicas(leaderReplica, replicaMaxLagTimeMs)
+          if(outOfSyncReplicas.nonEmpty) {
+            val newInSyncReplicas = inSyncReplicas -- outOfSyncReplicas
+            assert(newInSyncReplicas.nonEmpty)
+            info("Shrinking ISR from %s to %s".format(inSyncReplicas.map(_.brokerId).mkString(","),
+              newInSyncReplicas.map(_.brokerId).mkString(",")))
+            // update ISR in zk and in cache
+            updateIsr(newInSyncReplicas)
+            // we may need to increment high watermark since ISR could be down to 1
+
+            replicaManager.isrShrinkRate.mark()
+            maybeIncrementLeaderHW(leaderReplica)
+          } else {
+            false
+          }
+
+        case None => false // do nothing if no longer leader
       }
-      if(period >= 0)
-        executor.scheduleAtFixedRate(runnable, delay, period, unit)
-      else
-        executor.schedule(runnable, delay, unit)
-  }
-}
+    }
 ```
+6.创建并启动KafkaController，用于进程内事件传递与通知
+```
+override def process(): Unit = {
+      #订阅zk上的节点变化
+      registerSessionExpirationListener()
+      registerControllerChangeListener()
+      elect()
+}
+
+def onControllerFailover() {
+    info("Starting become controller state transition")
+    readControllerEpochFromZookeeper()
+    incrementControllerEpoch()
+    LogDirUtils.deleteLogDirEvents(zkUtils)
+
+    #监听各种状态变化
+    registerPartitionReassignmentListener()
+    registerIsrChangeNotificationListener()
+    registerPreferredReplicaElectionListener()
+    registerTopicChangeListener()
+    registerTopicDeletionListener()
+    registerBrokerChangeListener()
+    registerLogDirEventNotificationListener()
+
+    initializeControllerContext()
+    val (topicsToBeDeleted, topicsIneligibleForDeletion) = fetchTopicDeletionsInProgress()
+    topicDeletionManager.init(topicsToBeDeleted, topicsIneligibleForDeletion)
+
+    sendUpdateMetadataRequest(controllerContext.liveOrShuttingDownBrokerIds.toSeq)
+
+    replicaStateMachine.startup()
+    partitionStateMachine.startup()
+
+    // register the partition change listeners for all existing topics on failover
+    controllerContext.allTopics.foreach(topic => registerPartitionModificationsListener(topic))
+    info(s"Ready to serve as the new controller with epoch $epoch")
+    maybeTriggerPartitionReassignment()
+    topicDeletionManager.tryTopicDeletion()
+    val pendingPreferredReplicaElections = fetchPendingPreferredReplicaElections()
+    onPreferredReplicaElection(pendingPreferredReplicaElections)
+    info("Starting the controller scheduler")
+    kafkaScheduler.startup()
+    if (config.autoLeaderRebalanceEnable) {
+      scheduleAutoLeaderRebalanceTask(delay = 5, unit = TimeUnit.SECONDS)
+    }
+  }
+```
+7.
