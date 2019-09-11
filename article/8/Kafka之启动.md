@@ -154,4 +154,62 @@ def onControllerFailover() {
     }
   }
 ```
-7.
+7.生成KafkaApis，注册访问请求对应的处理handlers到KafkaRequestHandlerPool中
+```
+  ......省略......
+ val runnables = new Array[KafkaRequestHandler](numThreads)
+  for(i <- 0 until numThreads) {
+    runnables(i) = new KafkaRequestHandler(i, brokerId, aggregateIdleMeter, numThreads, requestChannel, apis, time)
+    KafkaThread.daemon("kafka-request-handler-" + i, runnables(i)).start()
+  }
+  ......省略......
+  
+  def handle(request: RequestChannel.Request) {
+    try {
+      trace(s"Handling request:${request.requestDesc(true)} from connection ${request.context.connectionId};" +
+        s"securityProtocol:${request.context.securityProtocol},principal:${request.context.principal}")
+      request.header.apiKey match {
+        case ApiKeys.PRODUCE => handleProduceRequest(request)
+        case ApiKeys.FETCH => handleFetchRequest(request)
+        case ApiKeys.LIST_OFFSETS => handleListOffsetRequest(request)
+        case ApiKeys.METADATA => handleTopicMetadataRequest(request)
+        case ApiKeys.LEADER_AND_ISR => handleLeaderAndIsrRequest(request)
+        case ApiKeys.STOP_REPLICA => handleStopReplicaRequest(request)
+        case ApiKeys.UPDATE_METADATA => handleUpdateMetadataRequest(request)
+        case ApiKeys.CONTROLLED_SHUTDOWN => handleControlledShutdownRequest(request)
+        case ApiKeys.OFFSET_COMMIT => handleOffsetCommitRequest(request)
+        case ApiKeys.OFFSET_FETCH => handleOffsetFetchRequest(request)
+        case ApiKeys.FIND_COORDINATOR => handleFindCoordinatorRequest(request)
+        case ApiKeys.JOIN_GROUP => handleJoinGroupRequest(request)
+        case ApiKeys.HEARTBEAT => handleHeartbeatRequest(request)
+        case ApiKeys.LEAVE_GROUP => handleLeaveGroupRequest(request)
+        case ApiKeys.SYNC_GROUP => handleSyncGroupRequest(request)
+        case ApiKeys.DESCRIBE_GROUPS => handleDescribeGroupRequest(request)
+        case ApiKeys.LIST_GROUPS => handleListGroupsRequest(request)
+        case ApiKeys.SASL_HANDSHAKE => handleSaslHandshakeRequest(request)
+        case ApiKeys.API_VERSIONS => handleApiVersionsRequest(request)
+        case ApiKeys.CREATE_TOPICS => handleCreateTopicsRequest(request)
+        case ApiKeys.DELETE_TOPICS => handleDeleteTopicsRequest(request)
+        case ApiKeys.DELETE_RECORDS => handleDeleteRecordsRequest(request)
+        case ApiKeys.INIT_PRODUCER_ID => handleInitProducerIdRequest(request)
+        case ApiKeys.OFFSET_FOR_LEADER_EPOCH => handleOffsetForLeaderEpochRequest(request)
+        case ApiKeys.ADD_PARTITIONS_TO_TXN => handleAddPartitionToTxnRequest(request)
+        case ApiKeys.ADD_OFFSETS_TO_TXN => handleAddOffsetsToTxnRequest(request)
+        case ApiKeys.END_TXN => handleEndTxnRequest(request)
+        case ApiKeys.WRITE_TXN_MARKERS => handleWriteTxnMarkersRequest(request)
+        case ApiKeys.TXN_OFFSET_COMMIT => handleTxnOffsetCommitRequest(request)
+        case ApiKeys.DESCRIBE_ACLS => handleDescribeAcls(request)
+        case ApiKeys.CREATE_ACLS => handleCreateAcls(request)
+        case ApiKeys.DELETE_ACLS => handleDeleteAcls(request)
+        case ApiKeys.ALTER_CONFIGS => handleAlterConfigsRequest(request)
+        case ApiKeys.DESCRIBE_CONFIGS => handleDescribeConfigsRequest(request)
+        case ApiKeys.ALTER_REPLICA_LOG_DIRS => handleAlterReplicaLogDirsRequest(request)
+        case ApiKeys.DESCRIBE_LOG_DIRS => handleDescribeLogDirsRequest(request)
+        case ApiKeys.SASL_AUTHENTICATE => handleSaslAuthenticateRequest(request)
+        case ApiKeys.CREATE_PARTITIONS => handleCreatePartitionsRequest(request)
+}
+  ......省略......
+```
+8.创建动态配置管理器来感知各个组件配置参数的动态变化，从zk中获取通知
+9.启动kafka心跳监测，Register this broker as "alive" in zookeeper
+10.checkpoint该brokerId的信息
