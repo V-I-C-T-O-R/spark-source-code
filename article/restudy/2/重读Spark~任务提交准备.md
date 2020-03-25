@@ -70,13 +70,14 @@ private def loadEnvironmentArguments(): Unit = {
 当然这里我们是提交任务，那么接下来就很关键了。先思考一下，当我们编写的程序编译打包好之后，我们需要指定哪些参数？没错，有--class、--master、
 --deploy-mode、--driver-memory、--executor-memory等等。有没有想到什么呢？对的，我们以Clinet on Yarn任务提交方式为例，分以下执行流程  
 ![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/2/pic/1.jpg)  
-客户端提交一个 Application, 在客户端启动一个Driver 进程。
-应用程序启动后会向RM(ResourceManager) 发送请求, 启动AM(ApplicationMaster)
-RM 收到请求, 随机选择一台 NM(NodeManager)启动AM
-AM 启动后, 会向ResourceManager请求一批container资源, 用于启动Executor
-RM会找到一批NM返回给AM, 用于启动Executor
-AM会向NM发送命令启动Executor
-Executor启动后, 会反向注册给Driver。Driver发送任务到Executor, Executor最后将执行情况和结果返回给Driver端
+- 客户端提交一个 Application, 在客户端启动一个Driver 进程
+- 应用程序启动后会向RM(ResourceManager) 发送请求, 启动AM(ApplicationMaster)
+- RM收到请求, 随机选择一台NM(NodeManager)启动AM
+- AM启动后, 会向ResourceManager请求一批container资源, 用于启动Executor
+- RM会找到一批NM返回给AM, 用于启动Executor
+- AM会向NM发送命令启动Executor
+- Executor启动后, 会反向注册给Driver，Driver发送任务到Executor, Executor最后将执行情况和结果返回给Driver端  
+
 在上部分代码中，具体的submit action会交给submit方法来做，submit方法隐藏了构造提交信息的prepareSubmitEnvironment操作。prepareSubmitEnvironment方法中根据传入参数的不同会生成几个关键属性：childArgs, childClasspath, sparkConf, childMainClass。其中childMainClass属性代表接下来将要执行的主类，而不同的主类对应着不同运行的模式。
 ```
 private[deploy] def prepareSubmitEnvironment(args: SparkSubmitArguments,conf: Option[HadoopConfiguration] = None): (Seq[String], Seq[String], SparkConf, String) = {
