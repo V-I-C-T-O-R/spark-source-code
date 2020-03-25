@@ -89,7 +89,21 @@ private def maybeIncrementLeaderHW(leaderReplica: Replica, curTime: Long = time.
     }
 }
 ```
-maybePropagateIsrChanges函数:  
-```
+maybePropagateIsrChanges函数，该函数的功能是广播ISR列表，包含两个条件：  
 
+* 当ISR不为空，变更且没有广播
+* 当前ISR列表在最新5s内没有发生变化，或自从上次广播之后与当前时间之差大于60s
 ```
+def maybePropagateIsrChanges() {
+    val now = System.currentTimeMillis()
+    isrChangeSet synchronized {
+      if (isrChangeSet.nonEmpty &&
+        (lastIsrChangeMs.get() + ReplicaManager.IsrChangePropagationBlackOut < now ||
+          lastIsrPropagationMs.get() + ReplicaManager.IsrChangePropagationInterval < now)) {
+          //更新zk中ISR节点信息
+        ReplicationUtils.propagateIsrChanges(zkUtils, isrChangeSet)
+        isrChangeSet.clear()
+        lastIsrPropagationMs.set(now)
+      }
+    }
+  }
