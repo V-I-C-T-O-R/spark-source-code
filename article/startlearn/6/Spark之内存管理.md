@@ -6,7 +6,7 @@ MemoryConsumers是TaskMemoryManager的客户端，对应于任务中的各个运
 MemoryPools是MemoryManager用来跟踪存储和执行之间内存划分的抽象。
 
 源代码中的代码流程图：
-![1.png](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/6/pic/1.png)
+![1.png](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/startlearn/6/pic/1.png)
 
 内存模式：主要分堆内内存和堆外内存，MemoryMode是一个枚举类，从本质上来说，ON_HEAP和OFF_HEAP都是MemoryMode的子类
 下面的一张图，来说明一下Spark内存结构：  
@@ -28,6 +28,6 @@ MemoryPools是MemoryManager用来跟踪存储和执行之间内存划分的抽�
 
 默认堆内存储内存大小 = 最大堆内内存 * 堆内内存存储池占比。即堆内存储池内存大小默认是 （系统JVM最大可用内存 -  300M）* 0.6 * 0.5， 即约等于JVM最大可用内存的三分之一。
 
-![2.png](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/6/pic/2.png)
+![2.png](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/startlearn/6/pic/2.png)
 图片来源[0x0fff.com](https://0x0fff.com/spark-memory-management/)  
 文字来源[johnny666888](https://www.cnblogs.com/johnny666888/p/11197519.html)，很细，值得一看
