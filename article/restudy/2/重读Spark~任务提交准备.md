@@ -1,7 +1,7 @@
 重读Spark~任务提交准备
 ---------------------------------------
 
-成功调用spark-shell脚本之后，spark提交机制开始正式运行。启动Java虚拟机环境之后，类加载机制会去找SparkSubmit伴生对象的main方法来执行，而main方法中重写了SparkSubmit伴生类的日志输出方法以及相关的异常捕获，类似面向切面编程记录输出日志信息，之后再调用伴生类的doSubmit()方法执行下一步。doSubmit方法中首先会根据日志配置进行初始化Logging模块
+成功调用spark-shell脚本之后，spark提交机制开始正式运行。启动Java虚拟机环境之后，类加载机制会去找SparkSubmit伴生对象的main方法来执行，而main方法中重写了SparkSubmit伴生类的日志输出方法以及相关的异常捕获，类似面向切面编程记录输出日志信息，之后再调用伴生类的doSubmit()方法执行下一步，doSubmit方法中会根据日志配置进行初始化Logging模块。
 ```
 private def initializeLogging(isInterpreter: Boolean, silent: Boolean): Unit = {
     // 如果配置的日志类名等于org.slf4j.impl.Log4jLoggerFactory，则进行日志初始化
@@ -68,7 +68,7 @@ private def loadEnvironmentArguments(): Unit = {
 }
 ```
 当然这里我们是提交任务，那么接下来就很关键了。先思考一下，当我们编写的程序编译打包好之后，我们需要指定哪些参数？没错，有--class、--master、
---deploy-mode、--driver-memory、--executor-memory等等。有没有想到什么呢？对的，我们以Clinet on Yarn任务提交方式为例，分以下执行流程  
+--deploy-mode、--driver-memory、--executor-memory等等。有没有想到什么呢？对的，我们以Clinet on Yarn任务提交方式为例，分以下执行流程:  
 ![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/2/pic/1.jpg)  
 - 客户端提交一个 Application, 在客户端启动一个Driver 进程
 - 应用程序启动后会向RM(ResourceManager) 发送请求, 启动AM(ApplicationMaster)
