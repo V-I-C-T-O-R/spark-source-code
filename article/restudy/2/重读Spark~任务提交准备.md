@@ -148,7 +148,7 @@ private def runMain(
   }
 }
 ```
-这里我们一般调用的是JavaMainApplication类的start方法，进而调用自己编写的实现类中的Main方法，完成预加载。
+这里我们一般调用的是对应Application类的start方法，进而调用自己编写的实现类中的Main方法，完成预加载。
 ```
 override def start(args: Array[String], conf: SparkConf): Unit = {
     val mainMethod = klass.getMethod("main", new Array[String](0).getClass)
