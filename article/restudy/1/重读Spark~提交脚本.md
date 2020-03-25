@@ -71,4 +71,4 @@ private List<String> buildSparkSubmitCommand(Map<String, String> env)
 }
 ```
 可以看到已本地提交方式最终执行的类是org.apache.spark.deploy.SparkSubmit，总体的调用流程如图：  
-![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/1/pic/1.jpg)
+![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/1/pic/1.jpeg)
