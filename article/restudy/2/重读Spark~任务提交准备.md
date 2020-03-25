@@ -70,7 +70,7 @@ private def loadEnvironmentArguments(): Unit = {
 当然这里我们是提交任务，那么接下来就很关键了。先思考一下，当我们编写的程序编译打包好之后，我们需要指定哪些参数？没错，有--class、--master、
 --deploy-mode、--driver-memory、--executor-memory等等。有没有想到什么呢？对的，我们以Clinet on Yarn任务提交方式为例，分以下执行流程  
 ![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/2/pic/1.jpg)  
-客户端提交一个 Application, 在客户端启动一盒Driver 进程。
+客户端提交一个 Application, 在客户端启动一个Driver 进程。
 应用程序启动后会向RM(ResourceManager) 发送请求, 启动AM(ApplicationMaster)
 RM 收到请求, 随机选择一台 NM(NodeManager)启动AM
 AM 启动后, 会向ResourceManager请求一批container资源, 用于启动Executor
