@@ -118,7 +118,7 @@ private[deploy] def prepareSubmitEnvironment(args: SparkSubmitArguments,conf: Op
     ......
 }
 ```
-由于以Yarn-Client模式做示例，所以接下来详细介绍该模式下的执行流程。当解析出上面步骤中解析出来的必要参数后实际开始调用runMain方法。
+由于以Yarn-Client模式做示例，所以下一节介绍该模式下的执行流程。当解析出上面步骤中的必要参数后，实际开始调用runMain方法。
 ```
 private def runMain(
     childArgs: Seq[String],
