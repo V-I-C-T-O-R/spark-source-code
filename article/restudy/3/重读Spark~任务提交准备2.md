@@ -73,7 +73,7 @@ private[spark] def createDriverEnv(
     )
   }
 ```
-看到这儿，肯定有点清楚了，这是要开启Socket服务了。没错，这里最终是调用了NettyRpcEnv类的create方法来完成Driver的远程rpc调用，并返回启动程序的上下文与访问方式————柳暗花明，原来在这里启动Driver角色。
+看到这儿，肯定有点清楚了，这是要开启Socket服务了。没错，这里最终是调用了NettyRpcEnv类的create方法来完成Driver的远程rpc调用，并返回启动程序的上下文与访问方式——柳暗花明，原来在这里启动Driver角色。
 ```
 //NettyRpcEnv类
 def create(config: RpcEnvConfig): RpcEnv = {
@@ -276,7 +276,7 @@ private def schedule(): Unit = {
     startExecutorsOnWorkers()
   }
 ```
-流程所设计的主要模块与方法如下图：  
+流程所涉及的主要模块与方法如下图：  
 ![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/3/pic/1.jpg)  
 继续主流程走向走完，资源部分准备完成.
 ```
