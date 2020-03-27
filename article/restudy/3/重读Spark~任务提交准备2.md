@@ -122,7 +122,7 @@ _taskScheduler.start()
 //从这里可以看出，上面的操作肯定跟yarn有关
 _applicationId = _taskScheduler.applicationId()
 ```
-下面开始分析createTaskScheduler部分，这里会根据调度模式FIFO或FAIR申请Task scheduler调度池
+下面开始分析createTaskScheduler部分，这里会根据调度模式FIFO或FAIR申请Task scheduler调度池。
 ```
 private def createTaskScheduler(
   sc: SparkContext,
@@ -167,7 +167,7 @@ private def createTaskScheduler(
 	}
 }
 ```
-这里getClusterManager的作用是在众多ExternalClusterManager继承者中来根据传入的master方式选定实现类，实现类有YarnClusterManager、MesosClusterManager、KubernetesClusterManager，比如说示例中是yarn，那么其实现方式如下：
+这里getClusterManager的作用是在众多ExternalClusterManager继承者中来根据传入的master方式选定实现类，实现类有YarnClusterManager、MesosClusterManager、KubernetesClusterManager，比如说示例中是yarn。那么其实现方式如下：
 ```
 private def getClusterManager(url: String): Option[ExternalClusterManager] = {
     val loader = Utils.getContextOrSparkClassLoader
@@ -278,7 +278,7 @@ private def schedule(): Unit = {
 ```
 流程所涉及的主要模块与方法如下图：  
 ![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/3/pic/1.jpg)  
-继续主流程走向走完，资源部分准备完成.
+继续主流程走向走完，资源部分准备完成。
 ```
 //SparkContext类，关键代码
 //为上面所有ListenerBus中注册好监听器每一个都创建一个线程
