@@ -1,4 +1,4 @@
-重读Spark~提交任务
+重读Spark~任务提交
 ---------------------------------------
 
 Spark的算子基本分为两类：Transformation变换/转换算子、Action算子。Trasformtion算子主要有union、reduceByKey、groupBy、join、map、mapPartition、cogroup、parallelize、textFile、leftoutJoin、flatMap、coalesce、Repartition。Action算子主要有count、take、collect、foreach、foreachPartition、saveAsTextFile、ditinct、first、reduce。
