@@ -25,3 +25,4 @@ Spark-source-code
 * [重读Spark~提交脚本](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/1/重读Spark~提交脚本.md)
 * [重读Spark~任务提交准备](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/2/重读Spark~任务提交准备.md)
 * [重读Spark~任务提交准备2](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/3/重读Spark~任务提交准备2.md)
+* [重读Spark~任务提交](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/4/重读Spark~任务提交.md)
