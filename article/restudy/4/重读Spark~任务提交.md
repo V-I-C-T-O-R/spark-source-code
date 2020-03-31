@@ -2,7 +2,9 @@
 ---------------------------------------  
 
 Spark的算子基本分为两类：Transformation变换/转换算子、Action算子。Trasformtion算子主要有union、reduceByKey、groupBy、join、map、mapPartition、cogroup、parallelize、textFile、leftoutJoin、flatMap、coalesce、Repartition。Action算子主要有count、take、collect、foreach、foreachPartition、saveAsTextFile、ditinct、first、reduce。  
-其中，Transformation变换/转换算子并不触发提交作业，完成作业中间过程处理。Transformation操作是延迟计算的，也就是说从一个RDD转换生成另一个RDD的转换操作不是马上执行，需要等到有Action操作的时候才会真正触发运算，而Action算子则会触发SparkContext提交Job作业。  
+
+其中，Transformation变换/转换算子并不触发提交作业，完成作业中间过程处理。Transformation操作是延迟计算的，也就是说从一个RDD转换生成另一个RDD的转换操作不是马上执行，需要等到有Action操作的时候才会真正触发运算，而Action算子则会触发SparkContext提交Job作业。 
+
 示例WordCount触发提交作业的便是collect算子，而collect方法又属于RDD类。RDD（Resilient Distributed Dataset）：弹性分布式数据集，Spark计算的基石，为用户屏蔽了底层对数据的复杂抽象和处理，为用户提供了一组方便的数据转换与求值方法。
 ```
 def collect(): Array[T] = withScope {
