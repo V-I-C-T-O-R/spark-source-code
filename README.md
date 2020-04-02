@@ -27,3 +27,4 @@ Spark-source-code
 * [重读Spark~任务提交准备2](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/3/重读Spark~任务提交准备2.md)
 * [重读Spark~任务提交](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/4/重读Spark~任务提交.md)
 * [重读Spark~RDD](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/5/重读Spark~RDD.md)
+* [重读Spark~CheckPoint](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/6/重读Spark~CheckPoint.md)
