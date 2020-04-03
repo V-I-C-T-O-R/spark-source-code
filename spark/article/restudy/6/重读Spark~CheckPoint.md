@@ -74,7 +74,7 @@ def writeRDDToCheckpointDirectory[T: ClassTag](originalRDD: RDD[T],checkpointDir
     newRDD
   }
 ```
-读取CheckPoint数据是在DAGSchedulor提交任务之后，当TaskSchedulor分配好ShuffleMapTask与ResultTask，执行runTask方法，其内部开始执行rdd.iterator(partition, context)。
+读取CheckPoint数据是在DAGScheduler提交任务之后，当TaskScheduler分配好ShuffleMapTask与ResultTask，执行runTask方法，其内部开始执行rdd.iterator(partition, context)。
 ```
 final def iterator(split: Partition, context: TaskContext): Iterator[T] = {
     //是否有缓存，有则从缓存状态读取
@@ -96,7 +96,7 @@ private[spark] def computeOrReadCheckpoint(split: Partition, context: TaskContex
     }
 }
 ```
-![2.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/restudy/6/pic/1.jpg)  
+![2.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/restudy/6/pic/2.jpg)  
 完整的调用过程是：  
 ShuffleTask/ResultTask.runTask->RDD.iterator->RDD.computeOrReadCheckpoint->CheckpointRDD.iterator->ReliableCheckpointRDD.iterator->ReliableCheckpointRDD.compute->ReliableCheckpointRDD.readCheckpointFile  
 ```
