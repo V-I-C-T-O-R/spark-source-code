@@ -26,7 +26,7 @@ Kafka最开始通过Zookeeper的Watcher实现，每个Consumer Group在zookeeper
 
 路径图如下：  
 
-![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/startlearn/7/pic/1.jpg)
+![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/startlearn/7/pic/1.jpg)
 每个Consumer都分别在"/consumers/[group_id]/ids"和"/brokers/ids"路径上注册一个Watcher。当"/consumers/[group_id]/ids"路径的子节点发生变化时，便是Consumer group中的消费者出现了变化；当"/brokers/ids"路径的子节点发生变化时，表示Broker出现了增减。这样，通过Watcher，每个消费者就可以监控Consumer Group和Kafka集群的状态了。
 这个严重依赖Zookeeper集群的方案，有两个比较严重的问题：羊群效应(一个被watch的zookeeper节点变化，导致大量的watcher通知需要被发送给客户端，导致通知期间其他操作延迟)和脑裂(每个Consumer都是通过zookeeper中保存的元数据判断consumer group状态、broker状态、rebalance结果的，由于zookeeper只保证最终一致性，不同consumer在同一时刻可能连接到zookeeper集群中不同的服务器，看到的元数据就可能不一样，就会造成不正确的rebalance尝试)。
 ##### 方案二

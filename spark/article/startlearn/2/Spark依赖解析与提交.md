@@ -167,7 +167,7 @@ private def submitStage(stage: Stage) {
 }
 ```
 submitStage内部包含两个主要操作：getMissingParentStages和submitMissingTasks，用于按照顺序提交stage，主要的流程如下：  
-![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/startlearn/2/pic/1.jpg)
+![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/startlearn/2/pic/1.jpg)
 
 getMissingParentStages根据stage的rdd依赖来进行处理，若是窄依赖则继续递归处理该Rdd；若是宽依赖则获取该shuffleMapStage,判断该stage的状态是否是ready，不是则添加到待提交列表。
 ```

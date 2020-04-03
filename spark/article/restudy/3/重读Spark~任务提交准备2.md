@@ -277,7 +277,7 @@ private def schedule(): Unit = {
   }
 ```
 流程所涉及的主要模块与方法如下图：  
-![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/3/pic/1.jpg)  
+![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/restudy/3/pic/1.jpg)  
 继续主流程走向走完，资源部分准备完成。
 ```
 //SparkContext类，关键代码

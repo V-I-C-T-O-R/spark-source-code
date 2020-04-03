@@ -40,7 +40,7 @@ protected override def doCheckpoint(): CheckpointRDD[T] = {
     newRDD
 }
 ```
-![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/6/pic/1.jpg)  
+![1.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/restudy/6/pic/1.jpg)  
 调用过程是RDD.doCheckpoint->RDDCheckpintData.checkpoint->ReliableRDDCheckpintData.doCheckpoint->ReliableRDDCheckpintData.writeRDDToCheckpointDirectory。在writeRDDToCheckpointDirectory方法中，RunJob任务将RDD中每个parition的数据依次写入到CheckPoint目录(writePartitionToCheckpointFile)，如果该RDD中的partitioner不为空，也会将该对象序列化后存储到checkpoint目录。  
 因此，CheckPoint写入hdfs的数据主要包括：RDD每个parition的实际数据以及存在的partitioner对象(writePartitionerToCheckpointDir)。
 做完CheckPoint操作之后，会调用RDD的markCheckpoined方法斩断该RDD对上游的依赖以及将paritions置空等操作。
@@ -96,7 +96,7 @@ private[spark] def computeOrReadCheckpoint(split: Partition, context: TaskContex
     }
 }
 ```
-![2.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/article/restudy/6/pic/1.jpg)  
+![2.jpg](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/restudy/6/pic/1.jpg)  
 完整的调用过程是：  
 ShuffleTask/ResultTask.runTask->RDD.iterator->RDD.computeOrReadCheckpoint->CheckpointRDD.iterator->ReliableCheckpointRDD.iterator->ReliableCheckpointRDD.compute->ReliableCheckpointRDD.readCheckpointFile  
 ```
