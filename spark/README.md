@@ -12,7 +12,7 @@ Spark-source-code
 * [Spark依赖解析与提交](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/startlearn/2/Spark依赖解析与提交.md)
 * [Spark之RPC通信](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/startlearn/3/Spark之RPC通信.md)
 * [Spark之SparkSql](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/startlearn/4/Spark之SparkSql.md)
-* [Spark之SparkStreaming](https://github.com/V-I-C-T-O-R/spark-source-code/blob/spark/master/article/startlearn/5/Spark之SparkStreaming.md)
+* [Spark之SparkStreaming](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/startlearn/5/Spark之SparkStreaming.md)
 * [Spark之内存管理](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/startlearn/6/Spark之内存管理.md)
 * [Kakfa关键笔记](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/startlearn/7/Kafka原理剖析记录.md)
 * [Kakfa之启动笔记](https://github.com/V-I-C-T-O-R/spark-source-code/blob/master/spark/article/startlearn/8/Kafka之启动.md)
